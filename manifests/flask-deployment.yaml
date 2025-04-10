@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+  namespace: final
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      serviceAccountName: clo835
+      imagePullSecrets:
+        - name: ecr-pull-secret
+      containers:
+        - name: flask
+          image: 126778704493.dkr.ecr.us-east-1.amazonaws.com/webapp:v2
+          ports:
+            - containerPort: 81
+          envFrom:
+            - secretRef:
+                name: flask-secrets
+            - configMapRef:
+                name: flask-config
+          volumeMounts:
+            - name: flask-storage
+              mountPath: /app/static
+      volumes:
+        - name: flask-storage
+          persistentVolumeClaim:
+            claimName: flask-pvc

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flask-config
+  namespace: final
+data:
+  GROUP_NAME: "Awesome Devs"
+  SLOGAN: "Code. Deploy. Repeat."
+  AWS_REGION: "us-east-1"
+  BG_IMAGE_S3_URL: "s3://clo835-finalproject-bucket/download.jpeg"
