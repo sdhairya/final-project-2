@@ -7,4 +7,4 @@ data:
   GROUP_NAME: "Awesome Devs"
   SLOGAN: "Code. Deploy. Repeat."
   AWS_REGION: "us-east-1"
-  BG_IMAGE_S3_URL: "s3://clo835-finalproject-bucket/download.jpeg"
+  BG_IMAGE_S3_URL: "s3://clo835projectbucket/download.jpeg"
