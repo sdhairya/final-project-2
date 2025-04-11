@@ -23,7 +23,7 @@ spec:
             - containerPort: 81
           envFrom:
             - secretRef:
-                name: flask-secrets
+                name: k8-ecrets
             - configMapRef:
                 name: flask-config
           volumeMounts:
