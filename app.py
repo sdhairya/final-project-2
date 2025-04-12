@@ -5,10 +5,9 @@ import random
 import argparse
 import boto3
 import logging
+import time
 
 app = Flask(__name__)
-
-
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +18,6 @@ DBUSER = os.environ.get("DBUSER", "root")
 DBPWD = os.environ.get("DBPWD", "password")
 DATABASE = os.environ.get("DATABASE", "employees")
 DBPORT = int(os.environ.get("DBPORT", 3306))
-
 
 db_conn = None
 def connect_to_db():
@@ -35,8 +33,6 @@ def connect_to_db():
         db=DATABASE
     )
 
-
-
 # Group Name and Slogan from ConfigMap
 GROUP_NAME = os.environ.get("GROUP_NAME", "Awesome Devs")
 SLOGAN = os.environ.get("SLOGAN", "Code. Deploy. Repeat.")
@@ -48,7 +44,17 @@ LOCAL_BG_IMAGE_PATH = "static/download.jpeg"
 # AWS credentials (from K8s secrets)
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_SESSION_TOKEN = os.environ.get("AWS_SESSION_TOKEN")  # NEW
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+
+def wait_for_credentials():
+    retries = 5
+    for _ in range(retries):
+        if AWS_ACCESS_KEY and AWS_SECRET_KEY:
+            return True
+        logging.info("Waiting for AWS credentials to be available...")
+        time.sleep(2)
+    return False
 
 # Download the background image from S3
 def download_bg_image():
@@ -60,6 +66,7 @@ def download_bg_image():
         s3 = boto3.client('s3',
             aws_access_key_id=AWS_ACCESS_KEY,
             aws_secret_access_key=AWS_SECRET_KEY,
+            aws_session_token=AWS_SESSION_TOKEN,  # NEW
             region_name=AWS_REGION
         )
 
@@ -70,18 +77,12 @@ def download_bg_image():
     except Exception as e:
         logging.error(f"Failed to download background image: {e}")
 
-
 # Call on startup
-download_bg_image()
-
-# # Connect to MySQL DB
-# db_conn = connections.Connection(
-#     host=DBHOST,
-#     port=DBPORT,
-#     user=DBUSER,
-#     password=DBPWD,
-#     db=DATABASE
-# )
+time.sleep(5)
+if wait_for_credentials():
+    download_bg_image()
+else:
+    logging.error("AWS credentials not found after retries.")
 
 table = 'employee'
 output = {}
@@ -151,6 +152,4 @@ if __name__ == '__main__':
     parser.add_argument('--color', required=False)
     args = parser.parse_args()
     connect_to_db()
-
-
     app.run(host='0.0.0.0', port=81, debug=True)
